@@ -1,18 +1,30 @@
+import { SceneTransition } from "../utils/transition";
 import { Application, Container } from "pixi.js";
-
-enum TransitionType {
-  FADE_IN,
-  FADE_OUT,
-}
+/**
+ * Scene state enum, representing its lifecycle.
+ */
 export enum SceneState {
   LOAD,
   PROCESS,
   FINALIZE,
   DONE,
 }
+
+/**
+ * Base interface for all game scenes.
+ */
 export interface GameScene {
   sceneUpdate(delta: number): void;
 }
+
+/**
+ * Base implementation of a scene. Provides lifecycle update logic.
+ *
+ * @export
+ * @abstract
+ * @class AbstractGameScene
+ * @implements {GameScene}
+ */
 export abstract class AbstractGameScene implements GameScene {
   protected sceneState: SceneState;
   protected app: Application;
@@ -21,19 +33,47 @@ export abstract class AbstractGameScene implements GameScene {
   protected fadeOutSceneTransition: SceneTransition;
   protected sceneContainer: Container;
   private onDone: () => void;
+
   set fadeInTransition(fadeInSceneTransition: SceneTransition) {
     this.fadeInSceneTransition = fadeInSceneTransition;
   }
+
   set fadeOutTransition(fadeOutSceneTransition: SceneTransition) {
     this.fadeOutSceneTransition = fadeOutSceneTransition;
   }
+
+  /**
+   * Basic initialization of a scene, passing in the PIXI.APP
+   * @param app
+   */
   init(app: Application, sceneSwitcher: (sceneName: string) => void): void {
     this.app = app;
     this.sceneSwitcher = sceneSwitcher;
   }
+
+  /**
+   * Setup the scene for usage.
+   * @param sceneContainer
+   */
   abstract setup(sceneContainer: Container): void;
+
+  /**
+   * Handler that is called before the transition has completed.
+   * To be used when some motion is necessary before the full scene update has started.
+   * @param delta
+   */
   abstract preTransitionUpdate(delta: number): void;
+
+  /**
+   * Core scene update loop.
+   * @param delta
+   */
   abstract sceneUpdate(delta: number): void;
+
+  /**
+   * Scene lifecycle update loop.
+   * @param delta
+   */
   update(delta: number): void {
     switch (this.sceneState) {
       case SceneState.LOAD:
@@ -55,77 +95,9 @@ export abstract class AbstractGameScene implements GameScene {
         break;
     }
   }
+
   setFinalizing(onDone: () => void) {
     this.onDone = onDone;
     this.sceneState = SceneState.FINALIZE;
-  }
-}
-export interface SceneTransition {
-  init(app: Application, type: TransitionType, sceneContainer: Container): void;
-  update(delta: number, callback: () => void): void;
-}
-export interface SceneSettings {
-  index: number;
-  name?: string;
-  gameScene: AbstractGameScene;
-  fadeInTransition: SceneTransition;
-
-  fadeOutTransition: SceneTransition;
-}
-
-export class Engine {
-  private sceneSettings: SceneSettings[];
-  private app: Application;
-  private currentScene: SceneSettings;
-  constructor(app: Application, scenes: SceneSettings[]) {
-    this.app = app;
-    this.sceneSettings = scenes;
-    this.sceneSettings.forEach((sceneSettings: SceneSettings) => {
-      sceneSettings.gameScene.init(this.app, this.sceneSwitcher);
-    });
-    // Finding the scene with the lowest index
-    this.currentScene = scenes.reduce((prev: any, curr: any) => {
-      if (prev === undefined) {
-        return curr;
-      } else {
-        return prev.index > curr.index ? curr : prev;
-      }
-    }, undefined);
-    this.setupScene(this.currentScene);
-  }
-  sceneSwitcher = (sceneName: string) => {
-    this.currentScene.gameScene.setFinalizing(() => {
-      const scene = this.sceneSettings.find((sceneSettings) => {
-        return sceneSettings.name === sceneName;
-      });
-      if (scene) {
-        this.setupScene(scene);
-        this.currentScene = scene;
-      } else {
-        console.error("SCENE NOT FOUND: " + sceneName);
-      }
-    });
-  };
-  setupScene(sceneSettings: SceneSettings) {
-    this.app.stage.removeChildren();
-    const sceneContainer = new Container();
-    this.app.stage.addChild(sceneContainer);
-    const gameScene: AbstractGameScene = sceneSettings.gameScene;
-    gameScene.setup(sceneContainer);
-    sceneSettings.fadeInTransition.init(
-      this.app,
-      TransitionType.FADE_IN,
-      sceneContainer
-    );
-    sceneSettings.fadeOutTransition.init(
-      this.app,
-      TransitionType.FADE_OUT,
-      sceneContainer
-    );
-    gameScene.fadeInTransition = sceneSettings.fadeOutTransition;
-    gameScene.fadeOutTransition = sceneSettings.fadeInTransition;
-  }
-  update(delta: number) {
-    this.currentScene.gameScene.update(delta);
   }
 }
