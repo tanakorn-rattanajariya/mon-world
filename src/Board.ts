@@ -6,6 +6,7 @@ export function useBoard(): Board {
 }
 export class Board {
   public app: PIXI.Application;
+  private static _instance: Board;
   constructor() {
     this.app = new PIXI.Application({
       width: 500,
@@ -14,5 +15,8 @@ export class Board {
       transparent: false,
       resolution: 1,
     });
+  }
+  static getInstance() {
+    return this._instance || (this._instance = new this());
   }
 }

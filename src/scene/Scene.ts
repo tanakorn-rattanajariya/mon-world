@@ -32,6 +32,7 @@ export abstract class AbstractGameScene implements GameScene {
   protected fadeInSceneTransition: SceneTransition;
   protected fadeOutSceneTransition: SceneTransition;
   protected sceneContainer: Container;
+
   private onDone: () => void;
 
   set fadeInTransition(fadeInSceneTransition: SceneTransition) {
@@ -55,7 +56,7 @@ export abstract class AbstractGameScene implements GameScene {
    * Setup the scene for usage.
    * @param sceneContainer
    */
-  abstract setup(sceneContainer: Container): void;
+  abstract setup(container: Container): void;
 
   /**
    * Handler that is called before the transition has completed.
