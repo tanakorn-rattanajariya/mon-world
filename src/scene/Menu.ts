@@ -7,7 +7,7 @@ export default class Menu extends AbstractGameScene {
     sceneContainer.addChild(
       Button({
         text: "Start Fight",
-        x: 0,
+        x: 10,
         y: 0,
         onClick: () => {
           this.sceneSwitcher("fight");
