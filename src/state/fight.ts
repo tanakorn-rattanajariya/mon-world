@@ -83,6 +83,10 @@ export class StateFight {
     return this.count;
   }
 
+  public requestTarget():void{
+
+  }
+
   /** Action */
   public doDamage(damage: Damage) {
     for (let fighter of this.fighters || []) {

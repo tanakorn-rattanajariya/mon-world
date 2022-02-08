@@ -9,6 +9,7 @@ export enum FighterPosition {
 
 export enum FIGHTER_STATUS {
   POISION,
+  BURN
 }
 
 const CHARACTER_WIDTH = 100;
@@ -16,8 +17,16 @@ const CHARACTER_HEIGHT = 100;
 
 class FigherStatus {
   private status: FIGHTER_STATUS;
-  private turn: number;
+  private turn: number=0;
   private duration: number;
+  constructor(status: FIGHTER_STATUS,duration: number){
+    this.status = status;
+    this.duration = duration;
+  }
+
+  public getStatus(): FIGHTER_STATUS{
+    return this.status;
+  }
 }
 export abstract class Fighter {
   protected id: string;
@@ -66,6 +75,10 @@ export abstract class Fighter {
   }
   public getSprite(): Sprite {
     return this.sprite;
+  }
+  public applyStatus(status: FIGHTER_STATUS){
+    this.status.filter(eachStatus=> eachStatus.getStatus() != status);
+    this.status.push(new FigherStatus(status,10));
   }
 
   public build(): Sprite {
