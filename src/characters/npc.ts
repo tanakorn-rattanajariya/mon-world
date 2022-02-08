@@ -1,7 +1,7 @@
 import { Fighter, FighterPosition } from "./fighter";
 import { Sprite, SpriteSource } from "pixi.js";
 import { StateFight } from "../state/fight";
-export class Player extends Fighter {
+export class NPC extends Fighter {
   constructor(
     gameState: StateFight,
     name: string,
@@ -9,7 +9,7 @@ export class Player extends Fighter {
     health: number,
     attack: number
   ) {
-    super(gameState, name, source, health, attack, FighterPosition.LEFT);
+    super(gameState, name, source, health, attack, FighterPosition.RIGHT);
   }
   public action() {
     if (this.gameState.getCurrentTarget()) {
