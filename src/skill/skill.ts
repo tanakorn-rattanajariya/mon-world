@@ -4,13 +4,15 @@ import { Event, RandomEvents } from "src/utils/random";
 import { StateFight } from "../state/fight";
 
 interface Skill{
-    cast(atk:number) : Damage;
+    cast() : Damage;
 }
 interface TiggeringSkill{
     tigger(): Damage;
 }
 abstract class FireSkill implements Skill{
     abstract name: string;
+    abstract percentDamage:number;
+
     protected gameState: StateFight;
     private burnEvents: RandomEvents;
     constructor(
@@ -19,12 +21,11 @@ abstract class FireSkill implements Skill{
         this.gameState = gameState;
         this.burnEvents = new RandomEvents().addEvent(new Event('burn',20));
     }
-    private percentDamage:number;
 
-    cast(atk:number):Damage{
+    cast():Damage{
         let target = this.getTarget();
         this.additionEffects();
-        return {[target as string]:{damage: atk* this.percentDamage/100 }};
+        return {[target as string]:{damage: this.gameState.getCurrentFighterTurn().getAttack() * this.percentDamage/100 }};
     }
     abstract getTarget(): string | undefined ;
     abstract additionEffects(): void ;
@@ -36,13 +37,14 @@ abstract class FireSkill implements Skill{
             return this.burnEvents.randomEvent() == 'burn';
         });
         applyFighters.forEach(eachApply=>{
-            eachApply.applyStatus(FIGHTER_STATUS.BURN);
+            eachApply.applyStatus(FIGHTER_STATUS.BURN,10);
         })
     }
 }
 
 export class Firebolt extends FireSkill{
     name = "Firebolt";
+    percentDamage: number= 130;
 
     getTarget(): string | undefined {
         return this.gameState.getCurrentTarget();
@@ -53,14 +55,20 @@ export class Firebolt extends FireSkill{
     }
 }
 
-export class FireShield extends FireSkill{
+export class FireShield extends FireSkill implements TiggeringSkill{
     name = "Fire Shield";
+    percentDamage: number = 0;
 
     getTarget(): string | undefined {
-        return this.gameState.getCurrentTarget();
+        return this.gameState.getCurrentFighterTurn().getId();
     }
 
     additionEffects(): void {
-        
+        this.gameState.getCurrentFighterTurn().applyStatus(FIGHTER_STATUS.FIRE_SHIELD,10);
+    }
+
+    tigger(): Damage {
+        this.applyFireStatus(this.getTarget()||'');
+        return {};
     }
 }
